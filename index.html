@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buscador de Empreendimentos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F7F6F2; --surface:#FFFFFF; --surface2:#F0EEE8;
+    --border:#E2DED4; --text:#1A1916; --text2:#6B6860; --text3:#9C9A92;
+    --accent:#1A3A2A; --accent-light:#EAF2EC; --accent-text:#1A3A2A;
+    --warn:#7A4A00; --warn-bg:#FFF3DC;
+    --info:#0F3D6E; --info-bg:#E8F2FC;
+    --radius:10px; --radius-lg:14px;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+    --shadow-md:0 4px 12px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5}
+
+  header{background:var(--accent);color:#fff;padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .h-left{display:flex;align-items:center;gap:12px}
+  .h-title{font-family:'DM Serif Display',serif;font-size:20px;color:#fff}
+  .h-sub{font-size:12px;color:rgba(255,255,255,.5);margin-left:4px}
+  .h-right{display:flex;align-items:center;gap:12px}
+  .h-count{font-size:12px;color:rgba(255,255,255,.6)}
+  .h-count span{color:#fff;font-weight:500}
+  .btn-reload{font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,.3);border-radius:var(--radius);background:transparent;color:rgba(255,255,255,.8);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+  .btn-reload:hover{background:rgba(255,255,255,.1)}
+
+  #status-bar{padding:10px 2rem;font-size:13px;display:flex;align-items:center;gap:10px}
+  #status-bar.loading{background:#EAF2EC;color:var(--accent-text);border-bottom:1px solid #BCD8C2}
+  #status-bar.error{background:#FDEAEA;color:#7A1A1A;border-bottom:1px solid #F5C4C4}
+  #status-bar.ok{display:none}
+  .spinner{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .container{max-width:1300px;margin:0 auto;padding:1.5rem;display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start}
+
+  .sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow);position:sticky;top:76px}
+  .sidebar-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:1rem}
+  .fg{margin-bottom:1rem}
+  .fg:last-child{margin-bottom:0}
+  .fg>label{font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px}
+  select,input[type=text]{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s}
+  select:focus,input[type=text]:focus{border-color:var(--accent)}
+  .divline{border:none;border-top:1px solid var(--border);margin:1rem 0}
+  .checks{display:flex;flex-direction:column;gap:6px}
+  .ci{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+  .ci input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+  .ci span{font-size:13px;color:var(--text)}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .dl{background:#2D8A4E}.do{background:#C47B00}.dp{background:#1565C0}.di{background:#9C9A92}
+  .card-indisp{background:#F5F4F0;border-color:#D8D5CC}
+  .card-indisp .card-nome{color:var(--text2)}
+  .card-indisp .vv{color:var(--text2)}
+  .card-indisp .sep{border-color:#E8E5DE}
+  .bi{background:#ECEAE4;color:#5F5E5A}
+  .btn-buscar{margin-top:1.25rem;width:100%;padding:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;cursor:pointer;transition:opacity .15s,transform .1s}
+  .btn-buscar:hover{opacity:.88}
+  .btn-buscar:active{transform:scale(.98)}
+  .btn-limpar{margin-top:6px;width:100%;padding:8px;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text2);cursor:pointer;transition:background .15s}
+  .btn-limpar:hover{background:var(--surface2)}
+
+  .rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+  .ri{font-size:13px;color:var(--text2)}
+  .ri strong{color:var(--text);font-weight:600}
+  .sort-sel{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;outline:none}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem 1.25rem;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;transition:box-shadow .2s,transform .2s;animation:fadeUp .25s ease both}
+  .card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .card-nome{font-family:'DM Serif Display',serif;font-size:16px;color:var(--text);line-height:1.2}
+  .card-local{font-size:12px;color:var(--text3);margin-top:3px}
+  .badge{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-left:8px}
+  .bl{background:#E6F7EE;color:#1E7E4A}
+  .bo{background:var(--warn-bg);color:var(--warn)}
+  .bp{background:var(--info-bg);color:var(--info)}
+  .sep{border:none;border-top:1px solid var(--border)}
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px}
+  .spec{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px}
+  .spec strong{color:var(--text);font-weight:500}
+  .vl{font-size:11px;color:var(--text3)}
+  .vv{font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.02em}
+  .vp{font-size:12px;color:var(--text2);margin-top:3px}
+  .vm{font-size:11px;color:var(--text3);margin-top:2px}
+  .tags{display:flex;flex-wrap:wrap;gap:5px}
+  .tag{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text3);background:var(--surface2)}
+  .tag-sim{background:var(--accent-light);color:var(--accent-text);border-color:#BCD8C2;font-weight:500}
+  .tag-c{background:var(--surface2);color:var(--text2);border-color:var(--border)}
+  .clinks{display:flex;gap:7px}
+  .btn-link{flex:1;text-align:center;font-size:12px;font-weight:500;padding:6px 10px;border-radius:var(--radius);border:1px solid var(--border);color:var(--accent);background:var(--accent-light);text-decoration:none;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+  .btn-link:hover{background:#D4EBD9}
+  .vazio{grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--text3)}
+  .vazio h3{font-size:16px;color:var(--text2);font-weight:500;margin-bottom:8px}
+  .vazio p{font-size:13px;line-height:1.9}
+
+  @media(max-width:800px){.container{grid-template-columns:1fr}.sidebar{position:static}header{padding:0 1rem}.h-sub{display:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <span style="font-size:20px">🏢</span>
+    <span class="h-title">Buscador de Empreendimentos</span>
+    <span class="h-sub">— painel do corretor</span>
+  </div>
+  <div class="h-right">
+    <div class="h-count">Cadastrados: <span id="total-count">—</span></div>
+    <button class="btn-reload" onclick="carregarPlanilha()">↻ Atualizar dados</button>
+  </div>
+</header>
+
+<div id="status-bar" class="loading">
+  <div class="spinner"></div>
+  <span id="status-msg">Carregando dados da planilha...</span>
+</div>
+
+<div class="container">
+  <aside class="sidebar">
+    <div class="sidebar-title">Filtros de busca</div>
+    <div class="fg"><label>Cidade</label><select id="f-cidade"><option value="">Todas as cidades</option></select></div>
+    <div class="fg"><label>Bairro</label><select id="f-bairro"><option value="">Todos os bairros</option></select></div>
+    <div class="fg"><label>Construtora</label><select id="f-construtora"><option value="">Todas</option></select></div>
+    <hr class="divline">
+    <div class="fg">
+      <label>Dormitórios</label>
+      <select id="f-dorms">
+        <option value="">Qualquer</option>
+        <option value="1">1 dormitório</option>
+        <option value="2">2 dormitórios</option>
+        <option value="3">3 dormitórios</option>
+        <option value="4+">4 ou mais</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Suítes</label>
+      <select id="f-suites">
+        <option value="">Qualquer</option>
+        <option value="0">Sem suíte</option>
+        <option value="1">1 suíte</option>
+        <option value="2">2 suítes</option>
+        <option value="3">3 suítes</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Vagas de garagem</label>
+      <select id="f-vagas">
+        <option value="">Qualquer</option>
+        <option value="1">1 vaga</option>
+        <option value="2">2 vagas</option>
+        <option value="3">3 vagas</option>
+      </select>
+    </div>
+    <hr class="divline">
+    <div class="fg"><label>Valor máximo (R$)</label><input type="text" id="f-valor" placeholder="Ex: 750000"></div>
+    <div class="fg"><label>Área mínima (m²)</label><input type="text" id="f-area" placeholder="Ex: 60"></div>
+    <hr class="divline">
+    <div class="fg">
+      <label>Status</label>
+      <div class="checks">
+        <label class="ci"><input type="checkbox" class="chk-status" value="Lançamento" checked><span class="dot dl"></span><span>Lançamento</span></label>
+        <label class="ci"><input type="checkbox" class="chk-status" value="Em obra" checked><span class="dot do"></span><span>Em obra</span></label>
+        <label class="ci"><input type="checkbox" class="chk-status" value="Pronto" checked><span class="dot dp"></span><span>Pronto</span></label>
+        <label class="ci"><input type="checkbox" class="chk-status" value="Indisponível"><span class="dot di"></span><span>Indisponível</span></label>
+      </div>
+    </div>
+    <hr class="divline">
+    <div class="fg">
+      <label>Extras</label>
+      <div class="checks">
+        <label class="ci"><input type="checkbox" id="f-decorado"><span>Somente com decorado</span></label>
+        <label class="ci"><input type="checkbox" id="f-modelo"><span>Somente com modelo</span></label>
+      </div>
+    </div>
+    <button class="btn-buscar" onclick="buscar()">🔍 Buscar empreendimentos</button>
+    <button class="btn-limpar" onclick="limpar()">Limpar filtros</button>
+  </aside>
+
+  <main>
+    <div class="rh">
+      <div class="ri" id="resumo">Aguardando dados...</div>
+      <select class="sort-sel" id="f-ordem" onchange="buscar()">
+        <option value="nome">Ordenar: nome</option>
+        <option value="valor-asc">Menor preço</option>
+        <option value="valor-desc">Maior preço</option>
+        <option value="area-desc">Maior área</option>
+      </select>
+    </div>
+    <div class="cards" id="cards"></div>
+  </main>
+</div>
+
+<script>
+// ============================================================
+// 🔗 URL DO CSV DA SUA PLANILHA
+//    Para trocar de planilha no futuro, substitua apenas esta linha
+// ============================================================
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT3hyyGVCdrDnwRw0jq6AzUBvZtuuUxGswfYuMhWvBvUoA7wsMZRt2hNq3PdxFLd3nv8M7Sxm0MTLyN/pub?output=csv';
+// ============================================================
+
+let empreendimentos = [];
+
+function parseCSV(text) {
+  const linhas = [];
+  let cur = '', inQ = false, cells = [];
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], n = text[i+1];
+    if (c === '"') {
+      if (inQ && n === '"') { cur += '"'; i++; }
+      else { inQ = !inQ; }
+    } else if (c === ',' && !inQ) {
+      cells.push(cur.trim()); cur = '';
+    } else if ((c === '\n' || c === '\r') && !inQ) {
+      cells.push(cur.trim()); cur = '';
+      if (cells.some(x => x)) linhas.push(cells);
+      cells = [];
+      if (c === '\r' && n === '\n') i++;
+    } else { cur += c; }
+  }
+  if (cur || cells.length) { cells.push(cur.trim()); if (cells.some(x => x)) linhas.push(cells); }
+  return linhas;
+}
+
+function norm(v)  { return (v || '').trim(); }
+function sim(v)   { return /^s(im)?$/i.test(norm(v)); }
+function num(v)   { return parseInt((v || '').replace(/\D/g, '')) || 0; }
+function numVal(v) {
+  // suporta "R$ 1.700.000,00" e "1700000"
+  const s = (v || '').replace(/R\$\s*/g, '').replace(/\s/g,'').replace(/\./g,'').replace(',','.');
+  return parseFloat(s) || 0;
+}
+
+// busca índice de coluna pelo cabeçalho (parcial, sem acento)
+function semAcento(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+}
+function colIdx(header, termo) {
+  const t = semAcento(termo);
+  return header.findIndex(h => semAcento(h).includes(t));
+}
+
+async function carregarPlanilha() {
+  setStatus('loading', 'Carregando dados da planilha...');
+  document.getElementById('resumo').textContent = 'Aguardando dados...';
+  document.getElementById('cards').innerHTML = '';
+
+  try {
+    const resp = await fetch(CSV_URL);
+    if (!resp.ok) throw new Error('Erro HTTP ' + resp.status);
+    const text = await resp.text();
+    const linhas = parseCSV(text);
+    if (linhas.length < 2) throw new Error('Planilha sem dados');
+
+    const header = linhas[0].map(h => norm(h));
+
+    const iNome        = colIdx(header, 'empreendimento');
+    const iCidade      = colIdx(header, 'cidade');
+    const iBairro      = colIdx(header, 'bairro');
+    const iDorms       = colIdx(header, 'dorm');
+    const iSuites      = colIdx(header, 'suite') >= 0 ? colIdx(header, 'suite') : colIdx(header, 'sute');
+    const iVagas       = colIdx(header, 'vaga');
+    const iArea        = colIdx(header, 'area');
+    const iValor       = colIdx(header, 'valor');
+    const iPrazo       = colIdx(header, 'prazo');
+    const iStatus      = colIdx(header, 'status');
+    const iConstrutora = colIdx(header, 'construtora');
+    const iDecorado    = colIdx(header, 'decorado');
+    const iModelo      = colIdx(header, 'modelo');
+    const iLinkSite    = colIdx(header, 'link empreendimento') >= 0
+                           ? colIdx(header, 'link empreendimento')
+                           : colIdx(header, 'linksite');
+    const iLinkBook    = colIdx(header, 'book');
+    const iDisponivel  = colIdx(header, 'disponivel');
+
+    empreendimentos = linhas.slice(1).map(row => ({
+      nome:        norm(row[iNome]        || ''),
+      cidade:      norm(row[iCidade]      || ''),
+      bairro:      norm(row[iBairro]      || ''),
+      dorms:       num(row[iDorms]),
+      suites:      num(row[iSuites]),
+      vagas:       num(row[iVagas]),
+      area:        num(row[iArea]),
+      valor:       numVal(row[iValor]),
+      prazo:       norm(row[iPrazo]       || ''),
+      status:      norm(row[iStatus]      || ''),
+      construtora: norm(row[iConstrutora] || ''),
+      decorado:    sim(row[iDecorado]),
+      modelo:      sim(row[iModelo]),
+      linkSite:    norm(row[iLinkSite]    || ''),
+      linkBook:    norm(row[iLinkBook]    || ''),
+      disponivel:  iDisponivel < 0 || sim(row[iDisponivel]),
+    })).filter(e => e.nome);
+
+    document.getElementById('total-count').textContent = empreendimentos.length;
+    popularFiltros();
+    buscar();
+    setStatus('ok', '');
+
+  } catch(err) {
+    setStatus('error', 'Não foi possível carregar a planilha: ' + err.message);
+    document.getElementById('resumo').textContent = '';
+    document.getElementById('cards').innerHTML = `
+      <div class="vazio">
+        <div style="font-size:36px;margin-bottom:10px">⚠️</div>
+        <h3>Erro ao carregar a planilha</h3>
+        <p>
+          Verifique se a planilha está publicada como CSV.<br>
+          No Google Sheets: <strong>Arquivo → Compartilhar → Publicar na web → CSV</strong>.<br><br>
+          Depois clique em <strong>↻ Atualizar dados</strong> no topo da página.
+        </p>
+      </div>`;
+  }
+}
+
+function setStatus(type, msg) {
+  const bar = document.getElementById('status-bar');
+  bar.className = type;
+  document.getElementById('status-msg').textContent = msg;
+}
+
+function popularFiltros() {
+  const selC    = document.getElementById('f-cidade');
+  const selCons = document.getElementById('f-construtora');
+  const selB    = document.getElementById('f-bairro');
+
+  selC.innerHTML    = '<option value="">Todas as cidades</option>';
+  selCons.innerHTML = '<option value="">Todas</option>';
+  selB.innerHTML    = '<option value="">Todos os bairros</option>';
+
+  [...new Set(empreendimentos.map(e => e.cidade))].filter(Boolean).sort().forEach(c => {
+    const o = document.createElement('option'); o.value = c; o.textContent = c; selC.appendChild(o);
+  });
+  [...new Set(empreendimentos.map(e => e.construtora))].filter(Boolean).sort().forEach(c => {
+    const o = document.createElement('option'); o.value = c; o.textContent = c; selCons.appendChild(o);
+  });
+
+  selC.addEventListener('change', () => {
+    selB.innerHTML = '<option value="">Todos os bairros</option>';
+    const cidade = selC.value;
+    [...new Set(empreendimentos.filter(e => !cidade || e.cidade === cidade).map(e => e.bairro))]
+      .filter(Boolean).sort().forEach(b => {
+        const o = document.createElement('option'); o.value = b; o.textContent = b; selB.appendChild(o);
+      });
+  });
+}
+
+function fmtValor(v) { return 'R$ ' + v.toLocaleString('pt-BR'); }
+
+function badgeClass(s, disp) {
+  if (!disp) return 'bi';
+  const sl = s.toLowerCase();
+  if (sl.includes('lan')) return 'bl';
+  if (sl.includes('obra')) return 'bo';
+  return 'bp';
+}
+
+function statusEfetivo(e) {
+  return e.disponivel ? e.status : 'Indisponível';
+}
+
+function buscar() {
+  const cidade      = document.getElementById('f-cidade').value;
+  const bairro      = document.getElementById('f-bairro').value;
+  const construtora = document.getElementById('f-construtora').value;
+  const dorms       = document.getElementById('f-dorms').value;
+  const suites      = document.getElementById('f-suites').value;
+  const vagas       = document.getElementById('f-vagas').value;
+  const valorMax    = parseFloat(document.getElementById('f-valor').value.replace(/\D/g,'')) || Infinity;
+  const areaMin     = parseFloat(document.getElementById('f-area').value) || 0;
+  const statusSel   = [...document.querySelectorAll('.chk-status:checked')].map(c => c.value.toLowerCase());
+  const soDecor     = document.getElementById('f-decorado').checked;
+  const soModel     = document.getElementById('f-modelo').checked;
+  const ordem       = document.getElementById('f-ordem').value;
+
+  let res = empreendimentos.filter(e => {
+    if (cidade      && e.cidade      !== cidade)      return false;
+    if (bairro      && e.bairro      !== bairro)      return false;
+    if (construtora && e.construtora !== construtora) return false;
+    if (dorms) {
+      if (dorms === '4+' ? e.dorms < 4 : e.dorms !== parseInt(dorms)) return false;
+    }
+    if (suites !== '' && e.suites !== parseInt(suites)) return false;
+    if (vagas  && e.vagas !== parseInt(vagas))          return false;
+    if (e.valor > valorMax) return false;
+    if (e.area  < areaMin)  return false;
+    if (statusSel.length > 0 && !statusSel.some(s => statusEfetivo(e).toLowerCase().includes(s))) return false;
+    if (soDecor && !e.decorado) return false;
+    if (soModel && !e.modelo)   return false;
+    return true;
+  });
+
+  if (ordem === 'valor-asc')  res.sort((a,b) => a.valor - b.valor);
+  if (ordem === 'valor-desc') res.sort((a,b) => b.valor - a.valor);
+  if (ordem === 'area-desc')  res.sort((a,b) => b.area  - a.area);
+  if (ordem === 'nome')       res.sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+  document.getElementById('resumo').innerHTML = res.length > 0
+    ? `<strong>${res.length}</strong> empreendimento${res.length !== 1 ? 's' : ''} encontrado${res.length !== 1 ? 's' : ''}`
+    : 'Nenhum resultado encontrado';
+
+  const cards = document.getElementById('cards');
+  if (res.length === 0) {
+    cards.innerHTML = `<div class="vazio">
+      <div style="font-size:36px;margin-bottom:10px">🔍</div>
+      <h3>Nenhum empreendimento encontrado</h3>
+      <p>Tente ajustar ou limpar os filtros de busca.</p>
+    </div>`;
+    return;
+  }
+
+  cards.innerHTML = res.map((e, i) => {
+    const indisp = !e.disponivel;
+    const statusLabel = statusEfetivo(e);
+    return `
+    <div class="card${indisp ? ' card-indisp' : ''}" style="animation-delay:${i * 0.04}s">
+      <div class="card-top">
+        <div>
+          <div class="card-nome">${e.nome}</div>
+          <div class="card-local">📍 ${e.cidade}${e.bairro ? ' — ' + e.bairro : ''}</div>
+        </div>
+        <span class="badge ${badgeClass(e.status, e.disponivel)}">${statusLabel}</span>
+      </div>
+      <hr class="sep">
+      <div class="specs">
+        <div class="spec"><span>🛏</span>&nbsp;<strong>${e.dorms}</strong>&nbsp;dorm${e.dorms !== 1 ? 's' : ''}.</div>
+        <div class="spec"><span>⚡</span>&nbsp;<strong>${e.suites}</strong>&nbsp;suíte${e.suites !== 1 ? 's' : ''}</div>
+        <div class="spec"><span>🚗</span>&nbsp;<strong>${e.vagas}</strong>&nbsp;vaga${e.vagas !== 1 ? 's' : ''}</div>
+        <div class="spec"><span>📐</span>&nbsp;<strong>${e.area}&nbsp;m²</strong></div>
+      </div>
+      <hr class="sep">
+      <div>
+        <div class="vl">Valor a partir de</div>
+        <div class="vv">${fmtValor(e.valor)}</div>
+        ${e.prazo    ? `<div class="vp">📅 Entrega: ${e.prazo}</div>` : ''}
+        ${e.area > 0 ? `<div class="vm">${Math.round(e.valor/e.area).toLocaleString('pt-BR')} R$/m²</div>` : ''}
+      </div>
+      <div class="tags">
+        <span class="tag ${e.decorado ? 'tag-sim' : ''}">${e.decorado ? '✓ Decorado' : 'Sem decorado'}</span>
+        <span class="tag ${e.modelo   ? 'tag-sim' : ''}">${e.modelo   ? '✓ Modelo'   : 'Sem modelo'  }</span>
+        <span class="tag tag-c">${e.construtora}</span>
+      </div>
+      ${(e.linkSite || e.linkBook) ? `
+      <hr class="sep">
+      <div class="clinks">
+        ${e.linkSite ? `<a class="btn-link" href="${e.linkSite}" target="_blank">🌐 Site</a>`  : ''}
+        ${e.linkBook ? `<a class="btn-link" href="${e.linkBook}" target="_blank">📄 Book</a>` : ''}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function limpar() {
+  document.getElementById('f-cidade').value      = '';
+  document.getElementById('f-bairro').innerHTML  = '<option value="">Todos os bairros</option>';
+  document.getElementById('f-construtora').value = '';
+  document.getElementById('f-dorms').value       = '';
+  document.getElementById('f-suites').value      = '';
+  document.getElementById('f-vagas').value       = '';
+  document.getElementById('f-valor').value       = '';
+  document.getElementById('f-area').value        = '';
+  document.getElementById('f-ordem').value       = 'nome';
+  document.getElementById('f-decorado').checked  = false;
+  document.getElementById('f-modelo').checked    = false;
+  document.querySelectorAll('.chk-status').forEach(c => {
+    c.checked = c.value !== 'Indisponível';
+  });
+  buscar();
+}
+
+carregarPlanilha();
+</script>
+</body>
+</html>
