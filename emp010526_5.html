@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Empreendimentos | Sotere</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hero-bg { background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1600&q=80'); background-size: cover; background-position: center; }
+        .custom-chk { width: 16px; height: 16px; accent-color: #3b82f6; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+
+    <header class="hero-bg text-white py-10 shadow-2xl">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl font-bold tracking-tight uppercase">Portal de Empreendimentos</h1>
+                <p class="text-slate-400 text-xs italic">Consultoria Estratégica Interna - Sotere Imóveis</p>
+            </div>
+            <div id="conn-status" class="mt-4 md:mt-0 flex items-center bg-black/40 px-5 py-2 rounded-full border border-white/10">
+                <span id="dot" class="w-2.5 h-2.5 bg-yellow-500 rounded-full mr-3 animate-pulse"></span>
+                <span id="status-text" class="text-[10px] font-bold uppercase text-slate-200">Sincronizando...</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="container mx-auto -mt-6 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 border border-slate-100">
+            <!-- FILTROS PRINCIPAIS -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Cidade</label>
+                    <select id="f-cidade" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Bairro</label>
+                    <select id="f-bairro" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"><option value="">Todos os bairros</option></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Construtora</label>
+                    <select id="f-construtora" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Busca por Nome</label>
+                    <input type="text" id="f-nome" placeholder="Ex: Vista Campestre" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold">
+                </div>
+            </div>
+
+            <!-- FILTROS ESPECIFICACOES -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 border-t pt-6">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Dormitórios</label>
+                    <select id="f-dorm" class="w-full p-2 border rounded-xl text-xs font-bold bg-slate-50"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Suítes</label>
+                    <select id="f-suite" class="w-full p-2 border rounded-xl text-xs font-bold bg-slate-50"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Vagas</label>
+                    <select id="f-vaga" class="w-full p-2 border rounded-xl text-xs font-bold bg-slate-50"></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Valor Máx (R$)</label>
+                    <input type="number" id="f-valor" placeholder="Ex: 800000" class="w-full p-2 border rounded-xl text-xs font-bold bg-slate-50">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Área Mín (m²)</label>
+                    <input type="number" id="f-area" placeholder="Ex: 60" class="w-full p-2 border rounded-xl text-xs font-bold bg-slate-50">
+                </div>
+            </div>
+
+            <!-- STATUS E EXTRAS -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-t pt-6">
+                <div class="flex flex-wrap gap-4">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase w-full md:w-auto">Status:</span>
+                    <label class="flex items-center gap-2 text-xs font-bold"><input type="checkbox" value="Lançamento" class="chk-status custom-chk" checked> Lançamento</label>
+                    <label class="flex items-center gap-2 text-xs font-bold"><input type="checkbox" value="Em obra" class="chk-status custom-chk" checked> Em obra</label>
+                    <label class="flex items-center gap-2 text-xs font-bold"><input type="checkbox" value="Pronto" class="chk-status custom-chk" checked> Pronto</label>
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-400"><input type="checkbox" value="Indisponível" id="chk-indisp" class="custom-chk"> Indisponível</label>
+                </div>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 text-xs font-bold text-blue-600"><input type="checkbox" id="f-decorado" class="custom-chk"> Só Decorado</label>
+                    <label class="flex items-center gap-2 text-xs font-bold text-purple-600"><input type="checkbox" id="f-modelo" class="custom-chk"> Só Modelo</label>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <button onclick="buscar()" class="flex-1 md:flex-none bg-blue-600 text-white font-bold px-8 py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-blue-700 transition-all">Filtrar</button>
+                    <button onclick="limpar()" class="bg-slate-100 text-slate-500 font-bold px-4 py-3 rounded-xl text-xs uppercase hover:bg-slate-200 transition-all">Limpar</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="container mx-auto px-4 py-12">
+        <div id="grid-imoveis" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </main>
+
+    <script>
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT3hyyGVCdrDnwRw0jq6AzUBvZtuuUxGswfYuMhWvBvUoA7wsMZRt2hNq3PdxFLd3nv8M7Sxm0MTLyN/pub?gid=0&single=true&output=csv';
+        let imoveis = [];
+
+        async function carregar() {
+            try {
+                const res = await fetch(CSV_URL);
+                const text = await res.text();
+                const linhas = text.split('\n').filter(l => l.trim());
+                const cabecalho = linhas[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
+                
+                imoveis = linhas.slice(1).map(linha => {
+                    const col = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    let obj = {};
+                    cabecalho.forEach((h, i) => {
+                        let v = (col[i] || "").replace(/"/g, '').trim();
+                        if (['dorm','suite','vaga','area'].includes(h)) obj[h] = parseInt(v) || 0;
+                        else if (h.includes('valor')) obj['valor'] = parseFloat(v.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+                        else obj[h] = v;
+                    });
+                    return obj;
+                });
+
+                popularFiltros();
+                buscar();
+                updateStatus(true, imoveis.length);
+            } catch (e) { updateStatus(false); }
+        }
+
+        function popularFiltros() {
+            const fill = (id, campo, label) => {
+                const vals = [...new Set(imoveis.map(i => i[campo]))].filter(Boolean).sort((a,b) => typeof a === 'number' ? a-b : a.localeCompare(b));
+                document.getElementById(id).innerHTML = `<option value="">${label}</option>` + vals.map(v => `<option value="${v}">${v}</option>`).join('');
+            };
+            fill('f-cidade', 'cidade', 'Todas as cidades');
+            fill('f-construtora', 'construtora', 'Todas');
+            fill('f-dorm', 'dorm', 'Qualquer');
+            fill('f-suite', 'suite', 'Qualquer');
+            fill('f-vaga', 'vaga', 'Qualquer');
+
+            document.getElementById('f-cidade').addEventListener('change', (e) => {
+                const bairros = [...new Set(imoveis.filter(i => !e.target.value || i.cidade === e.target.value).map(i => i.bairro))].filter(Boolean).sort();
+                document.getElementById('f-bairro').innerHTML = '<option value="">Todos os bairros</option>' + bairros.map(b => `<option value="${b}">${b}</option>`).join('');
+            });
+        }
+
+        function buscar() {
+            const f = {
+                cidade: document.getElementById('f-cidade').value,
+                bairro: document.getElementById('f-bairro').value,
+                construtora: document.getElementById('f-construtora').value,
+                nome: document.getElementById('f-nome').value.toLowerCase(),
+                dorm: document.getElementById('f-dorm').value,
+                suite: document.getElementById('f-suite').value,
+                vaga: document.getElementById('f-vaga').value,
+                valor: parseFloat(document.getElementById('f-valor').value) || Infinity,
+                area: parseInt(document.getElementById('f-area').value) || 0,
+                status: [...document.querySelectorAll('.chk-status:checked')].map(c => c.value),
+                indisp: document.getElementById('chk-indisp').checked,
+                decorado: document.getElementById('f-decorado').checked,
+                modelo: document.getElementById('f-modelo').checked
+            };
+
+            const filtrados = imoveis.filter(i => {
+                const statusEfetivo = i.disponivel === 'Não' ? 'Indisponível' : i.status;
+                
+                if (f.cidade && i.cidade !== f.cidade) return false;
+                if (f.bairro && i.bairro !== f.bairro) return false;
+                if (f.construtora && i.construtora !== f.construtora) return false;
+                if (f.nome && !i.empreendimento.toLowerCase().includes(f.nome)) return false;
+                if (f.dorm && i.dorm != f.dorm) return false;
+                if (f.suite && i.suite != f.suite) return false;
+                if (f.vaga && i.vaga != f.vaga) return false;
+                if (i.valor > f.valor || i.area < f.area) return false;
+                if (f.decorado && i.decorado !== 'Sim') return false;
+                if (f.modelo && i.modelo !== 'Sim') return false;
+                
+                // Lógica de Status + Indisponível
+                if (statusEfetivo === 'Indisponível') return f.indisp;
+                return f.status.includes(statusEfetivo);
+            });
+
+            render(filtrados);
+        }
+
+        function render(lista) {
+            const grid = document.getElementById('grid-imoveis');
+            grid.innerHTML = lista.map(i => `
+                <div class="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden flex flex-col hover:border-blue-200 transition-all ${i.disponivel === 'Não' ? 'opacity-60 grayscale' : ''}">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg uppercase">${i.empreendimento}</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase">${i.bairro} — ${i.cidade}</p>
+                            </div>
+                            <span class="text-[9px] font-black px-2 py-1 rounded bg-slate-100 uppercase">${i.disponivel === 'Não' ? 'Indisponível' : i.status}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 my-4">
+                            <div class="bg-slate-50 p-2 rounded-lg text-center"><p class="text-[8px] text-slate-400 font-bold uppercase">Área</p><p class="text-xs font-black">${i.area}m²</p></div>
+                            <div class="bg-slate-50 p-2 rounded-lg text-center"><p class="text-[8px] text-slate-400 font-bold uppercase">Valor</p><p class="text-xs font-black">R$ ${i.valor.toLocaleString('pt-BR')}</p></div>
+                            <div class="bg-slate-50 p-2 rounded-lg text-center"><p class="text-[8px] text-slate-400 font-bold uppercase">Dorms</p><p class="text-xs font-black">${i.dorm}</p></div>
+                            <div class="bg-slate-50 p-2 rounded-lg text-center"><p class="text-[8px] text-slate-400 font-bold uppercase">Suítes</p><p class="text-xs font-black">${i.suite}</p></div>
+                        </div>
+                        <div class="flex gap-1 mb-4">
+                            ${i.decorado === 'Sim' ? '<span class="bg-blue-50 text-blue-600 text-[8px] font-bold px-2 py-0.5 rounded uppercase">✓ Decorado</span>' : ''}
+                            ${i.modelo === 'Sim' ? '<span class="bg-purple-50 text-purple-600 text-[8px] font-bold px-2 py-0.5 rounded uppercase">✓ Modelo</span>' : ''}
+                        </div>
+                        <div class="flex gap-2 border-t pt-4">
+                            ${i.book ? `<a href="${i.book}" target="_blank" class="flex-1 text-center py-2 bg-slate-100 rounded-lg text-[9px] font-bold uppercase hover:bg-slate-200">Book PDF</a>` : ''}
+                            <a href="${i['link empreendimento']}" target="_blank" class="flex-1 text-center py-2 bg-blue-600 text-white rounded-lg text-[9px] font-bold uppercase hover:bg-blue-700">Site</a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStatus(ok, count) {
+            const dot = document.getElementById('dot'), txt = document.getElementById('status-text');
+            dot.className = ok ? "w-2.5 h-2.5 bg-green-500 rounded-full mr-3" : "w-2.5 h-2.5 bg-red-500 rounded-full mr-3";
+            txt.innerText = ok ? `${count} Imóveis Sincronizados` : "Erro na Planilha";
+        }
+
+        function limpar() {
+            location.reload();
+        }
+
+        carregar();
+    </script>
+</body>
+</html>
