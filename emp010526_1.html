@@ -3,166 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Interno de Empreendimentos | Sotere</title>
+    <title>Portal de Empreendimentos | Sotere</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .hero-bg {
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1373&q=80');
+            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=80');
             background-size: cover;
             background-position: center;
         }
-        .card-shadow { transition: all 0.3s ease; }
-        .card-shadow:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .custom-range::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: #2563eb; cursor: pointer; border-radius: 50%; }
     </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-800">
+<body class="bg-slate-50 text-slate-900">
 
-    <!-- TOP BANNER / HERO -->
-    <header class="hero-bg text-white py-16 px-6 shadow-lg relative">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <div class="mb-8 md:mb-0">
-                <h1 class="text-4xl font-bold mb-2 text-white">Portal de Consultas</h1>
-                <p class="text-xl text-gray-200">Gestão Estratégica e Curadoria Sotere Imóveis</p>
-                <div id="status-indicator" class="mt-6 inline-flex items-center bg-black/40 px-4 py-2 rounded-full border border-white/20">
-                    <span class="w-3 h-3 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
-                    <span class="text-sm font-medium">Verificando conexão com a planilha...</span>
+    <!-- BANNER TOPO -->
+    <header class="hero-bg text-white py-20 shadow-2xl">
+        <div class="container mx-auto px-6 text-center md:text-left">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <h1 class="text-5xl font-extrabold tracking-tight">Portal de Empreendimentos</h1>
+                <div id="conn-status" class="mt-4 md:mt-0 flex items-center bg-white/10 backdrop-blur-md px-5 py-2 rounded-full border border-white/20">
+                    <span id="dot" class="w-3 h-3 bg-yellow-400 rounded-full mr-3 animate-pulse"></span>
+                    <span id="status-text" class="text-sm font-semibold uppercase tracking-wider text-white">Conectando...</span>
                 </div>
             </div>
-            <div class="flex gap-4">
-                 <button class="bg-white/10 hover:bg-white/20 border border-white/30 px-6 py-2 rounded-lg transition">Visite nosso site</button>
-            </div>
+            <p class="text-xl text-slate-300 max-w-2xl font-light">Gestão inteligente e rápida de lançamentos e obras. Localize a unidade ideal para seu lead em segundos.</p>
         </div>
     </header>
 
-    <!-- SEARCH & FILTERS SECTION -->
-    <section class="container mx-auto -mt-10 px-4">
-        <div class="bg-white rounded-xl shadow-2xl p-6 border border-gray-100">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <!-- Busca Global -->
+    <!-- ÁREA DE FILTROS -->
+    <section class="container mx-auto -mt-12 px-6 pb-12">
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Busca Geral</label>
-                    <input type="text" id="searchBox" placeholder="Empreendimento, Cidade, Bairro ou Construtora..." class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Busca Rápida</label>
+                    <input type="text" id="mainSearch" placeholder="Nome, Construtora, Bairro ou Cidade..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Cidade</label>
-                    <select id="filterCidade" class="w-full border rounded-lg px-4 py-2 outline-none"></select>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Cidade</label>
+                    <select id="fCidade" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none"></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Construtora</label>
-                    <select id="filterConstrutora" class="w-full border rounded-lg px-4 py-2 outline-none"></select>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Status</label>
+                    <select id="fStatus" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none"></select>
                 </div>
             </div>
 
-            <!-- Filtros Avançados -->
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Dorms</label>
-                    <select id="filterDorm" class="w-full border rounded-lg px-3 py-2 outline-none">
-                        <option value="">Todos</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option>
-                    </select>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Dorms</label>
+                    <select id="fDorm" class="w-full border rounded-lg p-2 text-sm"><option value="">Todos</option></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Vagas</label>
-                    <select id="filterVagas" class="w-full border rounded-lg px-3 py-2 outline-none">
-                        <option value="">Qualquer</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option>
-                    </select>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Suítes</label>
+                    <select id="fSuite" class="w-full border rounded-lg p-2 text-sm"><option value="">Todos</option></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Status</label>
-                    <select id="filterStatus" class="w-full border rounded-lg px-3 py-2 outline-none"></select>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Vagas</label>
+                    <select id="fVaga" class="w-full border rounded-lg p-2 text-sm"><option value="">Todos</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Decorado?</label>
+                    <select id="fDecorado" class="w-full border rounded-lg p-2 text-sm"><option value="">Todos</option><option value="Sim">Sim</option><option value="Não">Não</option></select>
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Valor Máx: <span id="vVal">R$ 5M</span></label>
+                    <input type="range" id="fValor" min="0" max="5000000" step="50000" class="w-full h-2 bg-slate-200 rounded-lg custom-range cursor-pointer">
                 </div>
                 <div class="flex items-end">
-                    <button onclick="clearFilters()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 rounded-lg transition">Limpar Filtros</button>
+                    <button onclick="clearFilters()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-2 rounded-lg transition-all">Limpar</button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- MAIN CONTENT AREA -->
-    <main class="container mx-auto py-12 px-4">
-        <div id="listing-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Cards will be injected here -->
-        </div>
+    <!-- LISTAGEM -->
+    <main class="container mx-auto px-6 pb-20">
+        <h2 id="listTitle" class="text-2xl font-bold text-slate-800 mb-8 flex items-center">
+            <i class="fa-solid fa-building-circle-check mr-3 text-blue-600"></i> Empreendimentos Agrupados
+        </h2>
+        <div id="grid-imoveis" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
     </main>
 
     <script>
-        // CONFIGURAÇÃO: Substitua pelo link da sua planilha publicada como CSV
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT3hyyGVCdrDnwRw0jq6AzUBvZtuuUxGswfYuMhWvBvUoA7wsMZRt2hNq3PdxFLd3nv8M7Sxm0MTLyN/pub?gid=0&single=true&output=csv'; 
-        // Para testes, o script tentará ler o seu arquivo anexado se estiver no mesmo diretório
-        const FILE_NAME = 'Empreendimentos Disponíveis - Empreendimentos (1).csv';
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT3hyyGVCdrDnwRw0jq6AzUBvZtuuUxGswfYuMhWvBvUoA7wsMZRt2hNq3PdxFLd3nv8M7Sxm0MTLyN/pub?gid=0&single=true&output=csv';
+        let allItems = [];
+        let groupedMode = true;
 
-        let allData = [];
-
-        async function fetchData() {
-            const indicator = document.getElementById('status-indicator');
+        async function init() {
             try {
-                const response = await fetch(FILE_NAME);
-                const data = await response.text();
-                allData = parseCSV(data);
+                const res = await fetch(CSV_URL);
+                const text = await res.text();
+                allItems = parseCSV(text);
+                updateConnection(true, allItems.length);
+                fillSelects();
+                render();
                 
-                indicator.innerHTML = `<span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span><span class="text-sm font-medium">Online: ${allData.length} unidades disponíveis</span>`;
-                populateFilters();
-                renderCards(allData);
-            } catch (error) {
-                indicator.innerHTML = `<span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span><span class="text-sm font-medium">Falha na conexão com a planilha</span>`;
+                // Eventos de Filtro
+                ['mainSearch', 'fCidade', 'fStatus', 'fDorm', 'fSuite', 'fVaga', 'fDecorado'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', () => { groupedMode = false; render(); });
+                    document.getElementById(id).addEventListener('keyup', () => { groupedMode = false; render(); });
+                });
+                document.getElementById('fValor').oninput = function() {
+                    document.getElementById('vVal').innerText = 'R$ ' + (this.value / 1000000).toFixed(1) + 'M';
+                    groupedMode = false;
+                    render();
+                };
+            } catch (e) {
+                updateConnection(false);
             }
         }
 
-        function parseCSV(text) {
-            const lines = text.split('\n');
+        function parseCSV(csv) {
+            const lines = csv.split('\n').filter(l => l.trim());
             const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-            return lines.slice(1).filter(line => line.length > 0).map(line => {
+            return lines.slice(1).map(line => {
                 const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 let obj = {};
-                headers.forEach((h, i) => obj[h] = values[i]?.replace(/"/g, '').trim());
+                headers.forEach((h, i) => {
+                    let val = (values[i] || "").replace(/"/g, '').trim();
+                    if (h === 'valor') val = parseFloat(val.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+                    if (['dorm', 'suite', 'vaga', 'area'].includes(h)) val = parseInt(val) || 0;
+                    obj[h] = val;
+                });
                 return obj;
             });
         }
 
-        function renderCards(data) {
-            const container = document.getElementById('listing-container');
-            // Agrupar por Empreendimento
-            const grouped = data.reduce((acc, curr) => {
-                if (!acc[curr.empreendimento]) acc[curr.empreendimento] = [];
-                acc[curr.empreendimento].push(curr);
-                return acc;
-            }, {});
+        function updateConnection(ok, count) {
+            const dot = document.getElementById('dot');
+            const text = document.getElementById('status-text');
+            dot.className = ok ? "w-3 h-3 bg-green-500 rounded-full mr-3" : "w-3 h-3 bg-red-500 rounded-full mr-3";
+            text.innerText = ok ? `Online: ${count} Imóveis` : "Falha na Planilha";
+        }
 
-            container.innerHTML = Object.keys(grouped).map(name => {
-                const units = grouped[name];
-                const first = units[0];
-                return `
-                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden card-shadow">
+        function fillSelects() {
+            const unique = (key) => [...new Set(allItems.map(i => i[key]))].sort();
+            const populate = (id, list) => {
+                const el = document.getElementById(id);
+                el.innerHTML = '<option value="">Todos</option>' + list.map(v => `<option value="${v}">${v}</option>`).join('');
+            };
+            populate('fCidade', unique('cidade'));
+            populate('fStatus', unique('status'));
+            populate('fDorm', unique('dorm'));
+            populate('fSuite', unique('suite'));
+            populate('fVaga', unique('vaga'));
+        }
+
+        function render() {
+            const grid = document.getElementById('grid-imoveis');
+            const filters = {
+                search: document.getElementById('mainSearch').value.toLowerCase(),
+                cidade: document.getElementById('fCidade').value,
+                status: document.getElementById('fStatus').value,
+                dorm: document.getElementById('fDorm').value,
+                suite: document.getElementById('fSuite').value,
+                vaga: document.getElementById('fVaga').value,
+                decorado: document.getElementById('fDecorado').value,
+                valor: parseFloat(document.getElementById('fValor').value)
+            };
+
+            let filtered = allItems.filter(i => {
+                return (!filters.search || i.empreendimento.toLowerCase().includes(filters.search) || i.construtora.toLowerCase().includes(filters.search) || i.bairro.toLowerCase().includes(filters.search)) &&
+                       (!filters.cidade || i.cidade === filters.cidade) &&
+                       (!filters.status || i.status === filters.status) &&
+                       (!filters.dorm || i.dorm >= filters.dorm) &&
+                       (!filters.suite || i.suite >= filters.suite) &&
+                       (!filters.vaga || i.vaga >= filters.vaga) &&
+                       (!filters.decorado || i.decorado === filters.decorado) &&
+                       (i.valor <= filters.valor);
+            });
+
+            if (groupedMode) {
+                document.getElementById('listTitle').innerText = "Empreendimentos Agrupados";
+                const grouped = {};
+                filtered.forEach(i => { if (!grouped[i.empreendimento]) grouped[i.empreendimento] = []; grouped[i.empreendimento].push(i); });
+                
+                grid.innerHTML = Object.keys(grouped).map(key => {
+                    const group = grouped[key];
+                    const first = group[0];
+                    return `
+                    <div class="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:scale-[1.02] transition-all cursor-pointer" onclick="showSpecific('${key}')">
                         <div class="p-6">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded uppercase">${first.status}</span>
-                                <span class="text-gray-400 text-sm italic">${first.construtora}</span>
+                            <div class="flex justify-between mb-4"><span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded uppercase">${first.status}</span><span class="text-slate-400 text-xs font-medium">${first.construtora}</span></div>
+                            <h3 class="text-xl font-bold text-slate-900 leading-tight">${key}</h3>
+                            <p class="text-slate-500 text-sm mb-6"><i class="fa-solid fa-map-pin mr-1"></i> ${first.bairro}, ${first.cidade}</p>
+                            <div class="bg-slate-50 p-4 rounded-xl flex justify-between text-center mb-4">
+                                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Plantas</p><p class="font-bold text-blue-600">${group.length}</p></div>
+                                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Média</p><p class="font-bold">${first.area}m²</p></div>
+                                <div><p class="text-[10px] text-slate-400 uppercase font-bold">Entrega</p><p class="font-bold">${first.prazo || 'N/A'}</p></div>
                             </div>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-1">${name}</h3>
-                            <p class="text-gray-500 text-sm mb-4"><i class="fa-solid fa-location-dot mr-1"></i> ${first.bairro}, ${first.cidade}</p>
-                            
-                            <div class="border-t border-b border-gray-50 py-4 my-4 flex justify-between text-center">
-                                <div><p class="text-xs text-gray-400 uppercase">Plantas</p><p class="font-bold">${units.length} opções</p></div>
-                                <div><p class="text-xs text-gray-400 uppercase">Dorms</p><p class="font-bold">${first.dorm}</p></div>
-                                <div><p class="text-xs text-gray-400 uppercase">Entrega</p><p class="font-bold">${first.prazo || 'N/A'}</p></div>
+                            <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-200">Ver Detalhes</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } else {
+                document.getElementById('listTitle').innerText = `Resultados Encontrados (${filtered.length})`;
+                grid.innerHTML = filtered.map(i => `
+                    <div class="bg-white rounded-2xl shadow-md border border-blue-50 overflow-hidden">
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg text-blue-900">${i.empreendimento}</h3>
+                            <p class="text-xs text-slate-400 mb-3">${i.bairro} - ${i.cidade}</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs mb-4">
+                                <div class="bg-slate-50 p-2 rounded"><b>Área:</b> ${i.area}m²</div>
+                                <div class="bg-slate-50 p-2 rounded"><b>Valor:</b> R$ ${i.valor.toLocaleString()}</div>
+                                <div class="bg-slate-50 p-2 rounded"><b>Vagas:</b> ${i.vaga}</div>
+                                <div class="bg-slate-50 p-2 rounded"><b>Dorms:</b> ${i.dorm}</div>
                             </div>
-
-                            <button onclick="alert('Aqui abriria o detalhamento das ${units.length} plantas')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">Ver Opções de Plantas</button>
+                            <div class="flex gap-2">
+                                <a href="${i.book}" target="_blank" class="flex-1 bg-slate-100 text-slate-700 text-center py-2 rounded-lg text-xs font-bold">PDF Book</a>
+                                <a href="${i['link empreendimento']}" target="_blank" class="flex-1 bg-blue-50 text-blue-600 text-center py-2 rounded-lg text-xs font-bold">Site Oficial</a>
+                            </div>
                         </div>
                     </div>
-                `;
-            }).join('');
+                `).join('');
+            }
         }
 
-        // Funções de filtro seriam expandidas aqui...
+        function showSpecific(name) {
+            document.getElementById('mainSearch').value = name;
+            groupedMode = false;
+            render();
+        }
+
         function clearFilters() {
+            document.getElementById('mainSearch').value = '';
             document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-            document.getElementById('searchBox').value = '';
-            renderCards(allData);
+            document.getElementById('fValor').value = 5000000;
+            document.getElementById('vVal').innerText = 'R$ 5M';
+            groupedMode = true;
+            render();
         }
 
-        fetchData();
+        init();
     </script>
 </body>
 </html>
