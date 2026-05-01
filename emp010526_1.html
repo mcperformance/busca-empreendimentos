@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Interno de Empreendimentos | Sotere</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hero-bg {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1373&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .card-shadow { transition: all 0.3s ease; }
+        .card-shadow:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+
+    <!-- TOP BANNER / HERO -->
+    <header class="hero-bg text-white py-16 px-6 shadow-lg relative">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-8 md:mb-0">
+                <h1 class="text-4xl font-bold mb-2 text-white">Portal de Consultas</h1>
+                <p class="text-xl text-gray-200">Gestão Estratégica e Curadoria Sotere Imóveis</p>
+                <div id="status-indicator" class="mt-6 inline-flex items-center bg-black/40 px-4 py-2 rounded-full border border-white/20">
+                    <span class="w-3 h-3 bg-yellow-400 rounded-full mr-2 animate-pulse"></span>
+                    <span class="text-sm font-medium">Verificando conexão com a planilha...</span>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                 <button class="bg-white/10 hover:bg-white/20 border border-white/30 px-6 py-2 rounded-lg transition">Visite nosso site</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- SEARCH & FILTERS SECTION -->
+    <section class="container mx-auto -mt-10 px-4">
+        <div class="bg-white rounded-xl shadow-2xl p-6 border border-gray-100">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <!-- Busca Global -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Busca Geral</label>
+                    <input type="text" id="searchBox" placeholder="Empreendimento, Cidade, Bairro ou Construtora..." class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Cidade</label>
+                    <select id="filterCidade" class="w-full border rounded-lg px-4 py-2 outline-none"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Construtora</label>
+                    <select id="filterConstrutora" class="w-full border rounded-lg px-4 py-2 outline-none"></select>
+                </div>
+            </div>
+
+            <!-- Filtros Avançados -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Dorms</label>
+                    <select id="filterDorm" class="w-full border rounded-lg px-3 py-2 outline-none">
+                        <option value="">Todos</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Vagas</label>
+                    <select id="filterVagas" class="w-full border rounded-lg px-3 py-2 outline-none">
+                        <option value="">Qualquer</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Status</label>
+                    <select id="filterStatus" class="w-full border rounded-lg px-3 py-2 outline-none"></select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="clearFilters()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 rounded-lg transition">Limpar Filtros</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="container mx-auto py-12 px-4">
+        <div id="listing-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Cards will be injected here -->
+        </div>
+    </main>
+
+    <script>
+        // CONFIGURAÇÃO: Substitua pelo link da sua planilha publicada como CSV
+        const CSV_URL = 'SUA_URL_DO_GOOGLE_SHEETS_AQUI'; 
+        // Para testes, o script tentará ler o seu arquivo anexado se estiver no mesmo diretório
+        const FILE_NAME = 'Empreendimentos Disponíveis - Empreendimentos (1).csv';
+
+        let allData = [];
+
+        async function fetchData() {
+            const indicator = document.getElementById('status-indicator');
+            try {
+                const response = await fetch(FILE_NAME);
+                const data = await response.text();
+                allData = parseCSV(data);
+                
+                indicator.innerHTML = `<span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span><span class="text-sm font-medium">Online: ${allData.length} unidades disponíveis</span>`;
+                populateFilters();
+                renderCards(allData);
+            } catch (error) {
+                indicator.innerHTML = `<span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span><span class="text-sm font-medium">Falha na conexão com a planilha</span>`;
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            return lines.slice(1).filter(line => line.length > 0).map(line => {
+                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                let obj = {};
+                headers.forEach((h, i) => obj[h] = values[i]?.replace(/"/g, '').trim());
+                return obj;
+            });
+        }
+
+        function renderCards(data) {
+            const container = document.getElementById('listing-container');
+            // Agrupar por Empreendimento
+            const grouped = data.reduce((acc, curr) => {
+                if (!acc[curr.empreendimento]) acc[curr.empreendimento] = [];
+                acc[curr.empreendimento].push(curr);
+                return acc;
+            }, {});
+
+            container.innerHTML = Object.keys(grouped).map(name => {
+                const units = grouped[name];
+                const first = units[0];
+                return `
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden card-shadow">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded uppercase">${first.status}</span>
+                                <span class="text-gray-400 text-sm italic">${first.construtora}</span>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-1">${name}</h3>
+                            <p class="text-gray-500 text-sm mb-4"><i class="fa-solid fa-location-dot mr-1"></i> ${first.bairro}, ${first.cidade}</p>
+                            
+                            <div class="border-t border-b border-gray-50 py-4 my-4 flex justify-between text-center">
+                                <div><p class="text-xs text-gray-400 uppercase">Plantas</p><p class="font-bold">${units.length} opções</p></div>
+                                <div><p class="text-xs text-gray-400 uppercase">Dorms</p><p class="font-bold">${first.dorm}</p></div>
+                                <div><p class="text-xs text-gray-400 uppercase">Entrega</p><p class="font-bold">${first.prazo || 'N/A'}</p></div>
+                            </div>
+
+                            <button onclick="alert('Aqui abriria o detalhamento das ${units.length} plantas')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">Ver Opções de Plantas</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Funções de filtro seriam expandidas aqui...
+        function clearFilters() {
+            document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+            document.getElementById('searchBox').value = '';
+            renderCards(allData);
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
