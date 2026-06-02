@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Empreendimentos Marcelo Conti - Performance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-principal: #0b0f19;
+            --bg-card: #151c2c;
+            --cor-texto: #f3f4f6;
+            --cor-mutado: #9ca3af;
+            --azul-premium: #2563eb;
+            --azul-brilhante: #3b82f6;
+            --verde-sucesso: #10b981;
+            --laranja-alerta: #f59e0b;
+            --vermelho-erro: #ef4444;
+            --borda-card: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-principal);
+            color: var(--cor-texto);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--borda-card);
+            padding-bottom: 1.5rem;
+        }
+
+        .titulo-dashboard h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            background: linear-gradient(90deg, #fff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .titulo-dashboard p {
+            color: var(--cor-mutado);
+            font-size: 0.9rem;
+            margin-top: 0.2rem;
+        }
+
+        .status-atualizacao {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid rgba(10, 185, 129, 0.2);
+            font-size: 0.85rem;
+            color: var(--verde-sucesso);
+        }
+
+        .ponto-piscante {
+            width: 8px;
+            height: 8px;
+            background-color: var(--verde-sucesso);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Grid de Cards de Kpis (Métricas Principais) */
+        .grid-kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-kpi {
+            background-color: var(--bg-card);
+            border: 1px solid var(--borda-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .card-kpi:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-kpi .header-kpi {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--cor-mutado);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .card-kpi .header-kpi i {
+            font-size: 1.2rem;
+            color: var(--azul-brilhante);
+        }
+
+        .card-kpi .valor-kpi {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 1rem 0 0.5rem 0;
+            letter-spacing: -0.03em;
+        }
+
+        .card-kpi .subtexto-kpi {
+            font-size: 0.8rem;
+            color: var(--cor-mutado);
+        }
+
+        /* Grid de Gráficos */
+        .grid-graficos {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-graficos {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card-grafico {
+            background-color: var(--bg-card);
+            border: 1px solid var(--borda-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-height: 380px;
+        }
+
+        .card-grafico h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .container-canvas {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="titulo-dashboard">
+                <h1>Portal de Empreendimentos Marcelo Conti</h1>
+                <p>Dashboard de Performance Comercial & Conversão de Leads</p>
+            </div>
+            <div class="status-atualizacao">
+                <div class="ponto-piscante"></div>
+                <span>Conectado ao Google Sheets ao vivo</span>
+            </div>
+        </header>
+
+        <div class="grid-kpis">
+            <div class="card-kpi">
+                <div class="header-kpi">
+                    <span>VGV TOTAL COMERCIAL</span>
+                    <i class="fa-solid fa-chart-line" style="color: var(--verde-sucesso);"></i>
+                </div>
+                <div class="valor-kpi" id="kpi-vgv">R$ 0,00</div>
+                <div class="subtexto-kpi">Volume Geral de Vendas acumulado</div>
+            </div>
+
+            <div class="card-kpi">
+                <div class="header-kpi">
+                    <span>VENDAS CONCLUÍDAS</span>
+                    <i class="fa-solid fa-handshake" style="color: var(--azul-brilhante);"></i>
+                </div>
+                <div class="valor-kpi" id="kpi-vendas">0</div>
+                <div class="subtexto-kpi">Contratos fechados no período</div>
+            </div>
+
+            <div class="card-kpi">
+                <div class="header-kpi">
+                    <span>TOTAL DE ATIVIDADES</span>
+                    <i class="fa-solid fa-clipboard-list" style="color: var(--laranja-alerta);"></i>
+                </div>
+                <div class="valor-kpi" id="kpi-atividades">0</div>
+                <div class="subtexto-kpi">Ações e atendimentos registrados</div>
+            </div>
+
+            <div class="card-kpi">
+                <div class="header-kpi">
+                    <span>LIGAÇÕES REALIZADAS</span>
+                    <i class="fa-solid fa-phone"></i>
+                </div>
+                <div class="valor-kpi" id="kpi-ligacoes">0</div>
+                <div class="subtexto-kpi">Contatos telefônicos com leads</div>
+            </div>
+
+            <div class="card-kpi">
+                <div class="header-kpi">
+                    <span>TAXA DE CONVERSÃO</span>
+                    <i class="fa-solid fa-percentage" style="color: #a855f7;"></i>
+                </div>
+                <div class="valor-kpi" id="kpi-conversao">0%</div>
+                <div class="subtexto-kpi">Propostas vs Vendas Concluídas</div>
+            </div>
+        </div>
+
+        <div class="grid-graficos">
+            <div class="card-grafico">
+                <h3><i class="fa-solid fa-chart-area" style="color: var(--azul-brilhante);"></i> Evolução Diária: Atividades, Ligações e Visitas</h3>
+                <div class="container-canvas">
+                    <canvas id="graficoLinhaTempo"></canvas>
+                </div>
+            </div>
+
+            <div class="card-grafico">
+                <h3><i class="fa-solid fa-filter" style="color: var(--laranja-alerta);"></i> Funil Comercial (Volume)</h3>
+                <div class="container-canvas">
+                    <canvas id="graficoFunil"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URL da sua planilha publicada em formato CSV
+        const urlPlanilha = 'COLOQUE_AQUI_O_SEU_LINK_DO_GOOGLE_SHEETS_CSV';
+
+        // Variáveis globais para instâncias dos gráficos do Chart.js
+        let chartLinhaTempo;
+        let chartFunil;
+
+        // Função para formatar moeda (BRL)
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Limpa string de moeda e transforma em Float válido
+        function limparMoeda(texto) {
+            if (!texto) return 0;
+            let limpo = texto.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+            return parseFloat(limpo) || 0;
+        }
+
+        // Função para buscar e processar dados do Google Sheets
+        async function buscarDadosPlanilha() {
+            try {
+                const response = await fetch(urlPlanilha);
+                const dadosRaw = await response.text();
+                
+                // Quebra o arquivo CSV por linhas
+                const linhas = dadosRaw.split(/\r?\n/);
+                
+                // Inicializadores de Acumuladores dos KPIs
+                let totalVgv = 0;
+                let totalVendas = 0;
+                let totalAtividades = 0;
+                let totalLigacoes = 0;
+                let totalPropostas = 0;
+                let totalVisitas = 0;
+
+                // Arrays para armazenar dados para os eixos dos gráficos
+                let labelsDias = [];
+                let dadosAtividades = [];
+                let dadosLigacoes = [];
+                let dadosVisitas = [];
+
+                // Varre as linhas pulando o cabeçalho (i=1)
+                for (let i = 1; i < linhas.length; i++) {
+                    if (!linhas[i]) continue;
+                    
+                    // Regex para separar por vírgulas respeitando as aspas dos valores monetários
+                    let colunas = linhas[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    
+                    if (colunas.length < 10) continue;
+
+                    let dia = colunas[0];
+                    let atividades = parseInt(colunas[3]) || 0;
+                    let ligacoes = parseInt(colunas[4]) || 0;
+                    let visitas = parseInt(colunas[5]) || 0;
+                    let propostas = parseInt(colunas[7]) || 0;
+                    let vendas = parseInt(colunas[8]) || 0;
+                    let vgv = limparMoeda(colunas[9]);
+
+                    // Acumulando totais globais
+                    totalAtividades += atividades;
+                    totalLigacoes += ligacoes;
+                    totalVisitas += visitas;
+                    totalPropostas += propostas;
+                    totalVendas += vendas;
+                    totalVgv += vgv;
+
+                    // Guarda histórico diário para os gráficos (limita os últimos 15 dias para não poluir)
+                    labelsDias.push(dia.substring(0, 5)); // Apenas DD/MM
+                    dadosAtividades.push(atividades);
+                    dadosLigacoes.push(ligacoes);
+                    dadosVisitas.push(visitas);
+                }
+
+                // Cálculo da taxa de conversão (Propostas em Vendas)
+                let taxaConversao = totalPropostas > 0 ? ((totalVendas / totalPropostas) * 100).toFixed(1) : 0;
+
+                // Atualizando os elementos visuais na tela (Cards de KPI)
+                document.getElementById('kpi-vgv').innerText = formatarMoeda(totalVgv);
+                document.getElementById('kpi-vendas').innerText = totalVendas;
+                document.getElementById('kpi-atividades').innerText = totalAtividades;
+                document.getElementById('kpi-ligacoes').innerText = totalLigacoes;
+                document.getElementById('kpi-conversao').innerText = taxaConversao + '%';
+
+                // Renderizar ou atualizar os gráficos integrados
+                renderizarGraficos(labelsDias, dadosAtividades, dadosLigacoes, dadosVisitas, totalAtividades, totalLigacoes, totalVisitas, totalPropostas, totalVendas);
+
+            } catch (erro) {
+                console.error("Erro ao carregar dados do Google Sheets: ", erro);
+            }
+        }
+
+        // Configuração e Renderização de Gráficos usando Chart.js
+        function renderizarGraficos(labels, atividades, ligacoes, visitas, tAtiv, tLig, tVis, tProp, tVend) {
+            
+            // Configurações Globais estéticas do Chart.js para Dark Mode
+            Chart.defaults.color = '#9ca3af';
+            Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+
+            // 1. Gráfico de Evolução (Linha/Área)
+            const ctxLinha = document.getElementById('graficoLinhaTempo').getContext('2d');
+            if (chartLinhaTempo) chartLinhaTempo.destroy(); // Reseta se já existir
+            
+            chartLinhaTempo = new Chart(ctxLinha, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Atividades',
+                            data: atividades,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Ligações',
+                            data: ligacoes,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Visitas Realizadas',
+                            data: visitas,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // 2. Gráfico do Funil Comercial (Barra Horizontal)
+            const ctxFunil = document.getElementById('graficoFunil').getContext('2d');
+            if (chartFunil) chartFunil.destroy();
+
+            chartFunil = new Chart(ctxFunil, {
+                type: 'bar',
+                data: {
+                    labels: ['Atividades', 'Ligações', 'Visitas', 'Propostas', 'Vendas'],
+                    datasets: [{
+                        label: 'Volume de Leads / Ações',
+                        data: [tAtiv, tLig, tVis, tProp, tVend],
+                        backgroundColor: [
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(37, 99, 235, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(168, 85, 247, 0.8)'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Inverte para barra horizontal simulando funil
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Executa a busca ao abrir a página
+        buscarDadosPlanilha();
+
+        // Configura para rodar automaticamente a atualização a cada 5 minutos (300000 ms)
+        setInterval(buscarDadosPlanilha, 300000);
+    </script>
+</body>
+</html>
